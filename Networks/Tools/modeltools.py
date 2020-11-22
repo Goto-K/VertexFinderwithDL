@@ -17,7 +17,7 @@ from datetime import datetime
 def SavePairHistory(history, model_name):
 
     now = datetime.now()
-    path = "../../../log/PairHistory/History_" + model_name + "_" + now.strftime("%Y%m%d")
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../log/PairHistory/History_" + model_name + "_" + now.strftime("%Y%m%d"))
 
     with codecs.open(path, mode='wb') as f:
         pickle.dump(history.history, f)
@@ -27,9 +27,9 @@ def SavePairHistory(history, model_name):
 def SavePairModel(model, model_name):
 
     model_json = model.to_json()
-    open("../../../model/" + model_name + ".json", 'w').write(model_json)
+    open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../model/" + model_name + ".json"), 'w').write(model_json)
     print("Model Saved as json")
-    model.save_weights("../../../model/" + model_name + ".h5");
+    model.save_weights(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../model/" + model_name + ".h5"));
     print("Weights Saved as h5")
-    tf.saved_model.save(model, "../../../model/" + model_name)
+    tf.saved_model.save(model, os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../model/" + model_name))
 
