@@ -1,8 +1,8 @@
-from tensorflow.keras.layers import Input, Dense, RNN, Activation, TimeDistributed, BatchNormalization, Reshape, Bidirectional
+from tensorflow.keras.layers import Input, Dense, RNN, Activation, TimeDistributed, BatchNormalization, Reshape, Bidirectional, LSTM
 from tensorflow.keras.models import Model
 from tensorflow.python.keras.utils.generic_utils import CustomObjectScope
 
-from . import layer
+from . import layers
 
 
 def VLSTMModelSimple(pair, tracks, UNITS=256):
@@ -14,7 +14,7 @@ def VLSTMModelSimple(pair, tracks, UNITS=256):
     pair_input = Input(shape=(PAIR_DIM,), name='Pair_Input')
 
     track_input = Input(shape=(None, INPUT_DIM), name='Input')
-    track_embedd = TimeDistributed(Dense(UNITS, name='Embedding_Dense', activation='relu'))(encoder_input)
+    track_embedd = TimeDistributed(Dense(UNITS, name='Embedding_Dense', activation='relu'))(track_input)
 
     init_state = Dense(UNITS, name='Init_State_Dense_1')(pair_input)
     init_state = BatchNormalization(name='Init_State_BatchNorm_1')(init_state)
@@ -23,9 +23,37 @@ def VLSTMModelSimple(pair, tracks, UNITS=256):
     init_state = BatchNormalization(name='Init_State_BatchNorm_2')(init_state)
     init_state = Activation('relu', name='Init_State_Activation_2')(init_state)
 
-    cell = layer.VLSTMCellSimple(UNITS, 1)
+    cell = layers.VLSTMCellSimple(UNITS, 1)
 
     rnn = RNN(cell, return_sequences=True, name='Vertex_LSTM_Simple')(track_embedd, initial_state=[init_state, init_state])
+    
+    model = Model(inputs=[pair_input, track_input], outputs=rnn)
+
+    model.summary()
+
+    return model
+
+
+def LSTMModelSimple(pair, tracks, UNITS=256):
+
+    MAX_TRACK_NUM = tracks.shape[1]
+    INPUT_DIM = tracks.shape[2]
+    PAIR_DIM = pair.shape[1]
+
+    pair_input = Input(shape=(PAIR_DIM,), name='Pair_Input')
+
+    track_input = Input(shape=(None, INPUT_DIM), name='Input')
+    track_embedd = TimeDistributed(Dense(UNITS, name='Embedding_Dense', activation='relu'))(track_input)
+
+    init_state = Dense(UNITS, name='Init_State_Dense_1')(pair_input)
+    init_state = BatchNormalization(name='Init_State_BatchNorm_1')(init_state)
+    init_state = Activation('relu', name='Init_State_Activation_1')(init_state)
+    init_state = Dense(UNITS, name='Init_State_Dense_2')(init_state)
+    init_state = BatchNormalization(name='Init_State_BatchNorm_2')(init_state)
+    init_state = Activation('relu', name='Init_State_Activation_2')(init_state)
+
+    rnn = LSTM(UNITS, return_sequences=True, name='LSTM_Simple')(track_embedd, initial_state=[init_state, init_state])
+    rnn = TimeDistributed(Dense(1, name='Last_Dense', activation='relu'))(rnn)
     
     model = Model(inputs=[pair_input, track_input], outputs=rnn)
 
@@ -69,18 +97,20 @@ def AttentionVLSTMModel(pair, tracks, ENCODER_UNITS=256, DECODER_UNITS=256):
     denoder_init_state = BatchNormalization(name='Decoder_BatchNorm_2')(decoder_init_state)
     decoder_init_state = Activation('relu', name='Decoder_Activation_2')(decoder_init_state)
 
-    vlstm_cell_f = layer.VLSTMCellEncoder(ENCODER_UNITS)
-    vlstm_cell_b = layer.VLSTMCellEncoder(ENCODER_UNITS)
+    vlstm_cell_f = layers.VLSTMCellEncoder(ENCODER_UNITS)
+    vlstm_cell_b = layers.VLSTMCellEncoder(ENCODER_UNITS)
     encoder_f = RNN(vlstm_cell_f, return_sequences=True, name="Encoder_Forward_VLSTM", go_backwards=False)
     encoder_b = RNN(vlstm_cell_b, return_sequences=True, name="Encoder_Backward_VLSTM", go_backwards=True)
 
-    with CustomObjectScope({"VLSTMCellEncoder": layer.VLSTMCellEncoder}):
-        biencoder = Bidirectional(encoder_f, backward_layer=encoder_b)(encoder_embedd, initial_state=[encoder_init_state_f, encoder_init_state_f, encoder_init_state_b, encoder_init_state_b])
+    with CustomObjectScope({"VLSTMCellEncoder": layers.VLSTMCellEncoder}):
+        biencoder = Bidirectional(encoder_f, backward_layer=encoder_b, name='Bidirectional_Encoder_VLSTM')(encoder_embedd, 
+                                                                                                           initial_state=[encoder_init_state_f, encoder_init_state_f, 
+                                                                                                                          encoder_init_state_b, encoder_init_state_b])
 
-    biencoder = Reshape(target_shape=(MAX_TRACK_NUM*ENCODER_UNITS*2,))(biencoder)
+    biencoder = Reshape(target_shape=(MAX_TRACK_NUM*ENCODER_UNITS*2,), name='Reshape_Bidirectional_Encoder')(biencoder)
 
     # DCODER_UNITS, ENCODER_UNITS, DECODER_OUTPUT, MAX_TRACK_NUM
-    attentionvlstm_cell = layer.AttentionVLSTMCell(DECODER_UNITS, ENCODER_UNITS*2, 1, MAX_TRACK_NUM)
+    attentionvlstm_cell = layers.AttentionVLSTMCell(DECODER_UNITS, ENCODER_UNITS*2, 1, MAX_TRACK_NUM)
     
     decoder, attention = RNN(attentionvlstm_cell, return_sequences=True, name='Decoder_Attention_VLSTM')(decoder_embedd, initial_state=[biencoder, decoder_init_state])
     

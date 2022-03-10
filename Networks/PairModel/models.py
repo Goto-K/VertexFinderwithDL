@@ -14,11 +14,12 @@ def PairModelStandard(x_train, vertex_train, NODE_DIM=256):
     mid = Activation('relu', name='Activation_ReLU_1')(mid)
     mid = Dense(NODE_DIM, name='Dense_2')(mid)
     mid = BatchNormalization(name='Batch_Normalization_2')(mid)
-    mid = Activation('relu', name='Activation_ReLU_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_2')(mid)
     mid = Dense(NODE_DIM, name='Dense_3')(mid)
     mid = BatchNormalization(name='Batch_Normalization_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_3')(mid)
 
-    cla = Dense(NB_CLASSES)(mid)
+    cla = Dense(NB_CLASSES, name='Vertex_Dense')(mid)
     vertex_output = Activation('softmax', name='Vertex_Output')(cla)
 
     position_output = Dense(1, name='Position_Output')(mid)
@@ -30,7 +31,7 @@ def PairModelStandard(x_train, vertex_train, NODE_DIM=256):
     return model
 
 
-def PairModelB(x_train, vertex_train, NODE_DIM=256):
+def PairNetworkA(x_train, vertex_train, NODE_DIM=256):
 
     INPUT_DIM = x_train.shape[1]
     NB_CLASSES = vertex_train.shape[1]
@@ -43,13 +44,14 @@ def PairModelB(x_train, vertex_train, NODE_DIM=256):
     mid = Activation('relu', name='Activation_ReLU_1')(mid)
     mid = Dense(NODE_DIM, name='Dense_2')(mid)
     mid = BatchNormalization(name='Batch_Normalization_2')(mid)
-    mid = Activation('relu', name='Activation_ReLU_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_2')(mid)
     mid = Dense(NODE_DIM, name='Dense_3')(mid)
     mid = BatchNormalization(name='Batch_Normalization_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_3')(mid)
 
-    mid = Concatenate()([mid, position_input])
+    mid = Concatenate(name="Concatenate_Middle_State_LCFIPlus_Position")([mid, position_input])
 
-    cla = Dense(NB_CLASSES)(mid)
+    cla = Dense(NB_CLASSES, name='Vertex_Dense')(mid)
     vertex_output = Activation('softmax', name='Vertex_Output')(cla)
 
     model = Model(inputs=[variable_input, position_input], outputs=vertex_output)
@@ -59,7 +61,7 @@ def PairModelB(x_train, vertex_train, NODE_DIM=256):
     return model
 
 
-def PairModelC(x_train, vertex_train, NODE_DIM=256):
+def PairNetworkB(x_train, vertex_train, NODE_DIM=256):
 
     INPUT_DIM = x_train.shape[1]
     NB_CLASSES = vertex_train.shape[1]
@@ -71,18 +73,21 @@ def PairModelC(x_train, vertex_train, NODE_DIM=256):
     mid = Activation('relu', name='Activation_ReLU_1')(mid)
     mid = Dense(NODE_DIM, name='Dense_2')(mid)
     mid = BatchNormalization(name='Batch_Normalization_2')(mid)
-    mid = Activation('relu', name='Activation_ReLU_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_2')(mid)
     mid = Dense(NODE_DIM, name='Dense_3')(mid)
     mid = BatchNormalization(name='Batch_Normalization_3')(mid)
+    mid = Activation('relu', name='Activation_ReLU_3')(mid)
 
     position_output = Dense(1, name='Position_Output')(mid)
 
-    mid = Concatenate()([mid, position_output])
+    mid = Concatenate(name="Concatenate_Middle_State_LCFIPlus_Position")([mid, position_output])
     
-    cla = Dense(NB_CLASSES)(mid)
+    cla = Dense(NB_CLASSES, name='Vertex_Dense')(mid)
     vertex_output = Activation('softmax', name='Vertex_Output')(cla)
 
     model = Model(inputs=variable_input, outputs=[vertex_output, position_output])
 
     model.summary()
+
+    return model
 

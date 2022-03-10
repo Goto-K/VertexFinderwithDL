@@ -8,10 +8,10 @@ if __name__ == "__main__":
     model_name = "Pair_Model_Standard_cc_03-04_bb_04-05"
     model_path = "model/" + model_name
 
-    cc03_data_path = "data/numpy/cc/cc_03_pair.npy"
-    cc04_data_path = "data/numpy/cc/cc_04_pair.npy"
-    bb04_data_path = "data/numpy/bb/bb_04_pair.npy"
-    bb05_data_path = "data/numpy/bb/bb_05_pair.npy"
+    cc03_data_path = "data/numpy/cc/cc_07_pair.npy"
+    cc04_data_path = "data/numpy/cc/cc_08_pair.npy"
+    bb04_data_path = "data/numpy/bb/bb_08_pair.npy"
+    bb05_data_path = "data/numpy/bb/bb_09_pair.npy"
 
     cov = True
     node_dim = 256
@@ -22,5 +22,6 @@ if __name__ == "__main__":
     custom_weights = [0.02, 0.08, 1, 0.5, 0.37]
     loss_weights = [0.5, 0.5]
 
-    variables, vertex, position = datatools.LoadPairData(cc03_data_path, cc04_data_path, bb04_data_path, bb05_data_path, Cov=cov)
+    #variables, vertex, position = datatools.LoadPairData(cc03_data_path, cc04_data_path, bb04_data_path, bb05_data_path, saved_data_name="Pair_training", Cov=cov)
+    variables, vertex, position = datatools.LoadPairData(cc03_data_path, cc04_data_path, bb04_data_path, bb05_data_path, saved_data_name="Pair_evaluating", Cov=cov)
 
