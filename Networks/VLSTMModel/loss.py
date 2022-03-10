@@ -4,7 +4,10 @@ from tensorflow.python.keras import backend as K
 from tensorflow.python.framework import constant_op, ops
 from tensorflow.python.ops import math_ops, clip_ops
 from tensorflow.python.ops import variables as variables_module
+from tensorflow.python.keras import backend_config
 
+
+epsilon = backend_config.epsilon
 
 def binary_crossentropy(pair_reinforce=False, from_logits=False):
 

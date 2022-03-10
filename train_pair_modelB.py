@@ -7,7 +7,6 @@ if __name__ == "__main__":
     print("Pair Model Training")
     
     model_name = "Pair_Model_Standard_201129_ModelB"
-    #model_name = "Pair_Model_Standard_201129_Standard"
 
     data_path = "data/numpy/Pair_training_reshaped.npy"
 
@@ -20,33 +19,17 @@ if __name__ == "__main__":
     #NC : 0.0090, PV : 0.0175, SVCC : 0.3375, SVBB : 0.1800, TVCC : 0.3509, SVBC : 0.1260, Others : 1.0
     custom_weights = [0.0090, 0.0175, 0.3375, 0.1800, 0.3509, 0.1260, 1.0]
     
-    #loss_weights = [0.0, 1.0] # vertex, position
-    #model_name = model_name + "_loss_weights_vertex" + str(loss_weights[0]) + "_position" + str(loss_weights[1])
-
     data = np.load(data_path)
     variables, vertex, position = datatools.GetPairData(data, Cov=cov)
 
     model = models.PairModelStandard(variables, vertex, NODE_DIM=node_dim)
-    #model = models.PairNetworkB(variables, vertex, NODE_DIM=node_dim)
     
-    """
-    model,  history = training.PairModelTraining(model, model_name, variables, vertex, position, 
-                                                 BATCH_SIZE=batch_size, NB_EPOCHS=nb_epochs, VALIDATION_SPLIT=validation_split, LR=lr,
-                                                 Custom_Weights=custom_weights, Loss_Weights=loss_weights)
-
-    """
     model, history = training.PairModelTraining(model, model_name, variables, vertex, position, 
                                                 BATCH_SIZE=batch_size, NB_EPOCHS=1000, VALIDATION_SPLIT=validation_split, LR=lr,
                                                 Custom_Weights=custom_weights, Loss_Weights=[0.1, 0.9])
     model_name = model_name + "_loss_weights_vertex0.1_position0.9_1000epochs"
     modeltools.SavePairHistory(history, model_name)
     modeltools.SavePairModel(model, model_name)
-
-    """
-    for l in model.layers[1:9]:
-        l.trainable = False
-    model.summary()
-    """
 
     model, history = training.PairModelTraining(model, model_name, variables, vertex, position, 
                                                 BATCH_SIZE=batch_size, NB_EPOCHS=1500, VALIDATION_SPLIT=validation_split, LR=lr,
