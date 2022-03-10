@@ -45,5 +45,5 @@ def PairModelTraining(model, model_name, x_train, vertex_train, position_train, 
                         verbose=1,
                         validation_split=VALIDATION_SPLIT)
 
-    return history
+    return model, history
 
